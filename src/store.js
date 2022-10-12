@@ -164,6 +164,28 @@ export default new Vuex.Store({
         })
       })
     },
+    collectionThongKeFilter ({commit, state}, filter) {
+      return new Promise((resolve, reject) => {
+        let dataPost = JSON.stringify(filter.data)
+        let config = {
+          method: 'post',
+          // url: '/v1/datasharing/' + filter.collectionName + '/thongke',
+          url: '/v1/datasharing/thanhphanbaocao/thongke?keyword=&page=0&size=15&orderFields=baoCao_maBaoCao&orderTypes=asc&mauBaoCao_maMauBaoCao=GSDG01&mauThongKe_maMau=01',
+          headers: { 
+            'Accept': 'application/json', 
+            'Content-Type': 'application/json'
+          },
+          data : dataPost
+        }
+        // console.log('collectionThongKeFilter')
+        axios(config).then(function (response) {
+          let serializable = response.data
+          resolve(serializable)
+        }).catch(function (error) {
+          reject(error.response)
+        })
+      })
+    },
     collectionDetail ({commit, state}, filter) {
       return new Promise((resolve, reject) => {
         let config = {

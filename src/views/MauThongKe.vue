@@ -17,7 +17,7 @@
         
         <!-- form: searchForm  -->
         <v-form
-            ref="formThanhPhan"
+            ref="formTimKiem"
             lazy-validation
             class="mt-2"
         >
@@ -55,7 +55,7 @@
 
             <v-row class="my-0 pr-3">
               <v-col cols="12" class="d-flex align-center justify-end py-3 pb-0 my-0 pr-3" >
-                <v-btn color="primary" depressed small class="mx-0 text-white" @click="">
+                <v-btn color="primary" depressed small class="mx-0 text-white" @click="getDanhSachThongKe()">
                   <v-icon size="18">mdi-magnify</v-icon>&nbsp;
                   Tìm kiếm
                 </v-btn>
@@ -69,7 +69,7 @@
             <v-col cols="12"  class="pt-0">
               <v-data-table
                 :headers="headers"
-                :items="danhSachThanhPhan"
+                :items="danhSachThongKe"
                 :items-per-page="itemsPerPage"
                 item-key="primKey"
                 hide-default-footer
@@ -80,7 +80,7 @@
               >
                 <template v-slot:body="{ items, headers}">
                   <tbody>
-                    <tr v-for="(item, index) in items" :key="index" @click="showThongTinThanhPhan(item)">
+                    <tr v-for="(item, index) in danhSachThongKe" :key="index" @click="showThongTinThanhPhan(item)">
                       <td v-for="(itemHeader, indexHeader) in headers" :key="indexHeader" :class="itemHeader['class']" :width="itemHeader.hasOwnProperty('width') ? itemHeader.width : ''">
                         <div v-if="itemHeader.type == 'index'">
                           <div v-if="itemsPerPage" :style="itemHeader.hasOwnProperty('style') ? itemHeader.style : ''">{{ (page+1) * itemsPerPage - itemsPerPage + index + 1 }}</div>
@@ -104,32 +104,34 @@
                         <div v-else-if="itemHeader.type == 'calculator'" :style="itemHeader.hasOwnProperty('style') ? itemHeader.style : ''">
                           {{ convertDataView(itemHeader, item['noiDung']) }}
                         </div>
-                        <div v-else-if="itemHeader.type == 'action'">
+                        
+                        <!-- <div v-else-if="itemHeader.type == 'action'">
                           <v-tooltip top >
                             <template v-slot:activator="{ on, attrs }">
-                              <v-btn @click.stop="showThongTinThanhPhan(item)" color="#2161b1" text icon class=" mr-2" v-bind="attrs" v-on="on">
+                              <v-btn  color="#2161b1" text icon class=" mr-2" v-bind="attrs" v-on="on">
                                 <v-icon size="18">mdi-file-document-multiple-outline</v-icon>
                               </v-btn>
                             </template>
                             <span>Chi tiết thành phần</span>
                           </v-tooltip>
-                          <v-tooltip top v-if="isAdmin || checkRole('CAPNHATBAOCAO')">
+                          <v-tooltip top v-if="isAdmin">
                             <template v-slot:activator="{ on, attrs }">
-                              <v-btn @click.stop="showUpdateThanhPhan(item)" color="#2161b1" text icon class=" mr-2" v-bind="attrs" v-on="on">
+                              <v-btn color="#2161b1" text icon class=" mr-2" v-bind="attrs" v-on="on">
                                 <v-icon size="18">mdi-pencil</v-icon>
                               </v-btn>
                             </template>
                             <span>Sửa</span>
                           </v-tooltip>
-                          <v-tooltip top v-if="isAdmin || checkRole('CAPNHATBAOCAO')">
+                          <v-tooltip top v-if="isAdmin">
                             <template v-slot:activator="{ on, attrs }">
-                              <v-btn @click.stop="xoaThanhPhan(item)" color="red" text icon class="" v-bind="attrs" v-on="on">
+                              <v-btn color="red" text icon class="" v-bind="attrs" v-on="on">
                                 <v-icon size="18">mdi-delete</v-icon>
                               </v-btn>
                             </template>
                             <span>Xóa</span>
                           </v-tooltip>
-                        </div>
+                        </div> -->
+                        
                         <div v-else :style="itemHeader.hasOwnProperty('style') ? itemHeader.style : ''">
                           {{ item['noiDung'][itemHeader.value] }}
                         </div>
@@ -137,6 +139,7 @@
                     </tr>
                   </tbody>
                 </template>
+
               </v-data-table>
               <pagination v-if="pageCount" :pageInput="page" :total="total" :pageCount="pageCount" @tiny:change-page="changePage"></pagination>
             </v-col>
@@ -234,29 +237,30 @@
 import Pagination from './Pagination.vue'
 
 export default {
-    name: 'BaoCao',
+    name: 'MauThongKe',
     components: {
       Pagination,
     },
     props: ['id'],
     data() {
         return {
-            dialogChonMauBaoCao: true,
-            danhSachNhomBaoCao: [],
-            nhomBaoCao: '',
-            danhSachMauBaoCao: [],
-            mauBaoCao: '',
-            danhSachBaoCao: [],
-            searchForm: [],
-            validFormAdd: false,
-            data: {},
-            page: 0,
-            itemsPerPage: 0,
-            total: 0,
-            pageCount: 0,
-            loadingData: false,
-            danhSachThanhPhan: [],
-            headers: [],
+          danhSachThongKe: [],
+          dialogChonMauBaoCao: true,
+          danhSachNhomBaoCao: [],
+          nhomBaoCao: '',
+          danhSachMauBaoCao: [],
+          mauBaoCao: '',
+          danhSachBaoCao: [],
+          searchForm: [],
+          validFormAdd: false,
+          data: {},
+          page: 0,
+          itemsPerPage: 0,
+          total: 0,
+          pageCount: 0,
+          loadingData: false,
+          danhSachThanhPhan: [],
+          headers: [],
         }
     },
     created () {
@@ -272,7 +276,6 @@ export default {
     watch: {
         '$route': function (newRoute, oldRoute) {
           let vm = this
-          vm.loadDuLieuMauThongKe()
         }
     },
     methods: {
@@ -342,8 +345,8 @@ export default {
             vm.thongKeMauBaoCao = response.resp
             vm.headers = vm.thongKeMauBaoCao.mauThongKe[0].listView[0]['headers']
             vm.searchForm = vm.thongKeMauBaoCao.mauThongKe[0]['searchForm']
-            vm.itemsPerPage = vm.chiTietMauBaoCao.mauHienThi[0].hasOwnProperty('itemsPerPage') ? vm.chiTietMauBaoCao.mauHienThi[0].itemsPerPage : 0
-            vm.getdanhSachThanhPhan()
+            // vm.itemsPerPage = vm.chiTietMauBaoCao.mauHienThi[0].hasOwnProperty('itemsPerPage') ? vm.thongKeMauBaoCao.mauThongKe[0].itemsPerPage : 0
+            vm.getDanhSachThongKe()
           }).catch(function () {
           })
       },
@@ -357,12 +360,131 @@ export default {
               vm.$set(vm.searchForm[key], 'dataSource', resultData)
             }).catch(function(){})
           }
-
         }
       },
-    }
-}
+      getDanhSachThongKe(type) {
+        let vm = this
+        if (vm.loadingData) {
+          return
+        }
+        vm.loadingData = true
+        let filter = {
+          collectionName: 'thanhphanbaocao',
+          data: {
+            kyBaoCao:"CANAM",
+            nam:"2021",
+            mauBaoCao_maMauBaoCao:"GSDG02",
+            mauThongKe_maMau:"01",
+            coQuanThucHien:"",
+            pageable:{
+              orderFields:"",
+              orderTypes:"",
+              page:0,
+              size:15
+            }
+          }
+        }
+        vm.$store.dispatch('collectionThongKeFilter', filter).then(function (response) {
+          vm.danhSachThongKe = response.content
+          vm.total = response.totalElements
+          vm.pageCount = response.totalPages 
+          vm.loadingData = false
+        }).catch(function () {
+          vm.loadingData = false
+        })
+        
+      },
+      showThongTinThanhPhan (item) { 
 
+      },
+      changePage (config) {
+        let vm = this
+        vm.page = config.page
+        vm.getDanhSachThongKe()
+      },
+      resetFormTimKiem () {
+        let vm = this
+        if (vm.$refs.formTimKiem) {
+          vm.$refs.formTimKiem.reset()
+          vm.$refs.formTimKiem.resetValidation()
+        }        
+      },
+      convertDataView (itemHeader, item) {
+        let output = ''
+        try {
+          let calu = itemHeader['calculator'].replace(/dataInput/g, 'item')
+          output = eval(calu)
+        } catch (error) {
+          output = ''
+        }
+        return output
+      },
+      convertDataArray (itemHeader, array) {
+        let output = ''
+        if (array) {
+          output = Array.from(array, function (item) {
+            return item[itemHeader['mapping']]
+          })
+        }
+        output = output.toString().replace(/,/g, ', ')
+        return output
+      },
+      currency (value) {
+        if (value) {
+          let moneyCur = (value / 1).toFixed(0).replace('.', ',')
+          return moneyCur.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+        }
+        return ''
+      },
+      dateLocale (dateInput) {
+        if (!dateInput) {
+          return ''
+        }
+        let date = new Date(dateInput)
+        return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`
+      },
+      dateLocaleTime (dateInput) {
+        let date = new Date(dateInput)
+        return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+      },
+      changeDate(index) {
+        let vm = this
+        vm.menuDate1 = false
+        if (index === '1') {
+          vm.fromReceiveDateFormatted = vm.formatDate(vm.fromReceiveDate)
+        } else if (index === '2') {
+          vm.toReceiveDateFormatted = vm.formatDate(vm.toReceiveDate)
+        }
+      },
+      formatDate(date) {
+        if (!date) return ''
+        const [year, month, day] = date.split('-')
+        return `${day}/${month}/${year}`
+      },
+      parseDate(date) {
+        if (!date) return ''
+        if (String(date).indexOf('/') > 0) {
+          const [day, month, year] = date.split('/')
+          return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+        } else if (String(date).indexOf('-') > 0) {
+          const [day, month, year] = date.split('-')
+          return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+        } else {
+          let date1 = new Date(Number(date))
+          return `${date1.getFullYear()}-${(date1.getMonth() + 1).toString().padStart(2, '0')}-${date1.getDate().toString().padStart(2, '0')}`
+        }
+      },
+      getMinMax (date) {
+        if (!date) return null
+        const [day, month, year] = date.split('/')
+        return `${year}-${month}-${day}`
+      },
+      goBack () {
+        window.history.back()
+      }
+
+    },
+}
 </script>
 
 <style lang="scss">
